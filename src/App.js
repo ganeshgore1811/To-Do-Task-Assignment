@@ -14,11 +14,13 @@ function App() {
 
   const [dark, setDark] = useState(true);
 
+  // Load tasks from localStorage
   useEffect(() => {
     const saved = localStorage.getItem("tasks");
     if (saved) setTasks(JSON.parse(saved));
   }, []);
 
+  // Save tasks to localStorage
   useEffect(() => {
     localStorage.setItem("tasks", JSON.stringify(tasks));
   }, [tasks]);
@@ -46,7 +48,8 @@ function App() {
 
   return (
     <div className={`${dark ? "bg-gray-900" : "bg-gray-200"} min-h-screen flex items-center justify-center p-6 relative`}>
-
+      
+      {/* Theme Toggle */}
       <button
         onClick={() => setDark(!dark)}
         className="absolute top-5 right-5 bg-purple-500 hover:bg-purple-600 text-white px-4 py-2 rounded-lg"
@@ -62,6 +65,7 @@ function App() {
           Manage your tasks with Category, Priority, Due Date, Edit & Search
         </p>
 
+        {/* Inputs */}
         <div className="grid grid-cols-3 gap-2 mb-4">
           <input
             className="col-span-3 p-2 rounded-lg text-black"
@@ -86,6 +90,7 @@ function App() {
           Add Task
         </button>
 
+        {/* Search */}
         <div className="flex space-x-2 mb-6">
           <input
             className="flex-1 p-2 rounded-lg text-black"
@@ -102,14 +107,21 @@ function App() {
           </button>
         </div>
 
+        {/* Stats */}
         <div className="flex justify-between text-sm mb-3 text-gray-400">
           <span>Total: {tasks.length}</span>
           <span>Completed: {tasks.filter(t => t.done).length}</span>
         </div>
 
+        {/* Task List */}
         <ul className="space-y-2">
           {tasks.map((t, index) => (
-            <li key={index} className={`${dark ? "bg-gray-700" : "bg-gray-100"} p-3 rounded-lg flex justify-between items-center`}>
+            <li
+              key={index}
+              className={`p-3 rounded-lg flex justify-between items-center ${
+                t.done ? "bg-green-900/40" : dark ? "bg-gray-700" : "bg-gray-100"
+              }`}
+            >
               <div>
                 {editIndex === index ? (
                   <input
@@ -120,9 +132,16 @@ function App() {
                 ) : (
                   <p
                     onClick={() => toggleTask(index)}
-                    className={`font-semibold text-lg cursor-pointer ${t.done ? "line-through text-gray-400" : dark ? "text-white" : "text-gray-900"}`}
+                    className={`font-semibold text-lg cursor-pointer flex items-center space-x-2 ${
+                      t.done
+                        ? "line-through text-gray-400 opacity-70"
+                        : dark
+                        ? "text-white"
+                        : "text-gray-900"
+                    }`}
                   >
-                    {t.task}
+                    {t.done && <span className="text-green-400">✅</span>}
+                    <span>{t.task}</span>
                   </p>
                 )}
                 <p className="text-sm">Category: {t.category}</p>
@@ -165,6 +184,7 @@ function App() {
           ))}
         </ul>
 
+        {/* Clear All Button */}
         {tasks.length > 0 && (
           <button
             onClick={clearAll}
