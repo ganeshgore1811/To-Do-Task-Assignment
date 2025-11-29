@@ -1,200 +1,227 @@
-import { useState, useEffect } from "react";
+import React, { useState } from 'react';
+import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
+import Navbar from './components/Navbar';
+import Sidebar from './components/Sidebar';
+import Dashboard from './pages/Dashboard';
+import Accounts from './pages/Accounts';
+import Transactions from './pages/Transactions';
+import Transfers from './pages/Transfers';
+import Payments from './pages/Payments';
+import Profile from './pages/Profile';
 
 function App() {
-  const [task, setTask] = useState("");
-  const [category, setCategory] = useState("Work");
-  const [priority, setPriority] = useState("Low");
-  const [due, setDue] = useState("");
-  const [tasks, setTasks] = useState([]);
+  const [accounts, setAccounts] = useState([
+    { 
+      id: 1, 
+      name: 'Sajan Hirave', 
+      number: '4832', 
+      balance: 12540.50, 
+      currency: 'USD', 
+      type: 'Checking',
+      isActive: true
+    },
+    { 
+      id: 2, 
+      name: 'Ramesh More', 
+      number: '7641', 
+      balance: 32500.75, 
+      currency: 'USD', 
+      type: 'Savings',
+      isActive: true
+    },
+    { 
+      id: 3, 
+      name: 'Smith Hande', 
+      number: '2198', 
+      balance: 87500.00, 
+      currency: 'USD', 
+      type: 'Investment',
+      isActive: true
+    },
+    { 
+      id: 4, 
+      name: 'Goraksh Javale', 
+      number: '5521', 
+      balance: -1250.30, 
+      currency: 'USD', 
+      type: 'Credit',
+      isActive: true
+    },
+  ]);
 
-  const [search, setSearch] = useState("");
+  const [transactions, setTransactions] = useState([
+    { id: 1, description: 'Grocery Store', amount: -85.40, date: '2024-01-15', type: 'debit', category: 'Shopping', accountId: 1 },
+    { id: 2, description: 'Salary Deposit', amount: 4500.00, date: '2024-01-10', type: 'credit', category: 'Income', accountId: 1 },
+    { id: 3, description: 'Online Shopping', amount: -120.30, date: '2024-01-08', type: 'debit', category: 'Shopping', accountId: 1 },
+    { id: 4, description: 'Utility Bill', amount: -150.75, date: '2024-01-05', type: 'debit', category: 'Bills', accountId: 1 },
+    { id: 5, description: 'Stock Dividend', amount: 245.50, date: '2024-01-03', type: 'credit', category: 'Investment', accountId: 3 },
+  ]);
 
-  const [editIndex, setEditIndex] = useState(null);
-  const [editText, setEditText] = useState("");
+  const [transfers, setTransfers] = useState([
+    { id: 1, fromAccount: 'Main Checking', toAccount: 'Jane Smith', amount: 500.00, date: '2024-01-12', status: 'Completed' },
+    { id: 2, fromAccount: 'Main Checking', toAccount: 'Rent Payment', amount: 1200.00, date: '2024-01-05', status: 'Completed' },
+  ]);
 
-  const [dark, setDark] = useState(true);
+  const [bills, setBills] = useState([
+    { id: 1, name: 'Electricity Bill', provider: 'Power Company', amount: 85.50, dueDate: '2024-01-20', status: 'pending', icon: 'Home' },
+    { id: 2, name: 'Internet Bill', provider: 'NetConnect', amount: 65.00, dueDate: '2024-01-25', status: 'pending', icon: 'Wifi' },
+    { id: 3, name: 'Credit Card', provider: 'BankCard', amount: 450.00, dueDate: '2024-01-30', status: 'pending', icon: 'CreditCard' },
+  ]);
 
-  // Load tasks from localStorage
-  useEffect(() => {
-    const saved = localStorage.getItem("tasks");
-    if (saved) setTasks(JSON.parse(saved));
-  }, []);
+  const [user, setUser] = useState({
+    firstName: 'Ganesh',
+    lastName: 'Gore',
+    email: 'ganesh@gmail.com',
+    phone: '8857892345',
+    address: 'karvenagar',
+    memberSince: '2020'
+  });
 
-  // Save tasks to localStorage
-  useEffect(() => {
-    localStorage.setItem("tasks", JSON.stringify(tasks));
-  }, [tasks]);
-
-  const addTask = () => {
-    if (task.trim() === "") return;
-    setTasks([...tasks, { task, category, priority, due, done: false }]);
-    setTask("");
-    setCategory("Work");
-    setPriority("Low");
-    setDue("");
+  const addAccount = (newAccount) => {
+    const account = {
+      ...newAccount,
+      id: accounts.length + 1,
+      isActive: true
+    };
+    setAccounts([...accounts, account]);
   };
 
-  const toggleTask = (index) => {
-    const updated = [...tasks];
-    updated[index].done = !updated[index].done;
-    setTasks(updated);
+
+  const addTransaction = (transaction) => {
+    const newTransaction = {
+      ...transaction,
+      id: transactions.length + 1,
+      date: new Date().toISOString().split('T')[0]
+    };
+    setTransactions([newTransaction, ...transactions]);
   };
 
-  const deleteTask = (index) => {
-    setTasks(tasks.filter((_, i) => i !== index));
+
+  const transferMoney = (transferData) => {
+    const { fromAccountId, toAccountNumber, amount, description } = transferData;
+    
+
+    const updatedAccounts = accounts.map(account => {
+      if (account.id === fromAccountId) {
+        return { ...account, balance: account.balance - amount };
+      }
+      return account;
+    });
+
+
+    const newTransaction = {
+      id: transactions.length + 1,
+      description: `Transfer to ${toAccountNumber}`,
+      amount: -amount,
+      date: new Date().toISOString().split('T')[0],
+      type: 'debit',
+      category: 'Transfer',
+      accountId: fromAccountId
+    };
+
+    setAccounts(updatedAccounts);
+    setTransactions([newTransaction, ...transactions]);
+
+
+    const fromAccount = accounts.find(acc => acc.id === fromAccountId);
+    const newTransfer = {
+      id: transfers.length + 1,
+      fromAccount: fromAccount.name,
+      toAccount: toAccountNumber,
+      amount,
+      date: new Date().toISOString().split('T')[0],
+      status: 'Completed',
+      description
+    };
+    setTransfers([newTransfer, ...transfers]);
   };
 
-  const clearAll = () => setTasks([]);
+  const payBill = (billId) => {
+    const updatedBills = bills.map(bill => 
+      bill.id === billId ? { ...bill, status: 'paid' } : bill
+    );
+    
+
+    const bill = bills.find(b => b.id === billId);
+    const newTransaction = {
+      id: transactions.length + 1,
+      description: `Bill Payment - ${bill.name}`,
+      amount: -bill.amount,
+      date: new Date().toISOString().split('T')[0],
+      type: 'debit',
+      category: 'Bills',
+      accountId: 1 
+    };
+
+
+    const updatedAccounts = accounts.map(account => {
+      if (account.id === 1) {
+        return { ...account, balance: account.balance - bill.amount };
+      }
+      return account;
+    });
+
+    setBills(updatedBills);
+    setAccounts(updatedAccounts);
+    setTransactions([newTransaction, ...transactions]);
+  };
+
+  const updateUserProfile = (userData) => {
+    setUser(userData);
+  };
 
   return (
-    <div className={`${dark ? "bg-gray-900" : "bg-gray-200"} min-h-screen flex items-center justify-center p-6 relative`}>
-      
-      {/* Theme Toggle */}
-      <button
-        onClick={() => setDark(!dark)}
-        className="absolute top-5 right-5 bg-purple-500 hover:bg-purple-600 text-white px-4 py-2 rounded-lg"
-      >
-        {dark ? "Light Mode" : "Dark Mode"}
-      </button>
-
-      <div className={`${dark ? "bg-gray-800" : "bg-white"} w-full max-w-xl rounded-xl p-6 shadow-xl`}>
-        <h1 className={`${dark ? "text-white" : "text-gray-900"} text-3xl font-bold mb-2`}>
-          SmartToDo Planner ✅
-        </h1>
-        <p className={`${dark ? "text-gray-300" : "text-gray-700"} mb-5 text-sm`}>
-          Manage your tasks with Category, Priority, Due Date, Edit & Search
-        </p>
-
-        {/* Inputs */}
-        <div className="grid grid-cols-3 gap-2 mb-4">
-          <input
-            className="col-span-3 p-2 rounded-lg text-black"
-            type="text"
-            placeholder="Enter task..."
-            value={task}
-            onChange={(e) => setTask(e.target.value)}
-          />
-          <select className="p-2 rounded-lg text-black" value={category} onChange={(e) => setCategory(e.target.value)}>
-            <option>Work</option><option>Personal</option><option>Shopping</option><option>Study</option>
-          </select>
-          <select className="p-2 rounded-lg text-black" value={priority} onChange={(e) => setPriority(e.target.value)}>
-            <option>Low</option><option>Medium</option><option>High</option>
-          </select>
-          <input type="date" className="p-2 rounded-lg text-black" value={due} onChange={(e) => setDue(e.target.value)} />
+    <Router>
+      <div className="flex h-screen bg-gray-50">
+        <Sidebar />
+        <div className="flex-1 flex flex-col overflow-hidden">
+          <Navbar user={user} />
+          <main className="flex-1 overflow-x-hidden overflow-y-auto p-6">
+            <Routes>
+              <Route path="/" element={
+                <Dashboard 
+                  accounts={accounts} 
+                  transactions={transactions.slice(0, 5)}
+                  user={user}
+                />
+              } />
+              <Route path="/accounts" element={
+                <Accounts 
+                  accounts={accounts} 
+                  onAddAccount={addAccount}
+                />
+              } />
+              <Route path="/transactions" element={
+                <Transactions 
+                  transactions={transactions}
+                  accounts={accounts}
+                  onAddTransaction={addTransaction}
+                />
+              } />
+              <Route path="/transfers" element={
+                <Transfers 
+                  accounts={accounts}
+                  transfers={transfers}
+                  onTransfer={transferMoney}
+                />
+              } />
+              <Route path="/payments" element={
+                <Payments 
+                  bills={bills}
+                  onPayBill={payBill}
+                />
+              } />
+              <Route path="/profile" element={
+                <Profile 
+                  user={user}
+                  onUpdateProfile={updateUserProfile}
+                />
+              } />
+            </Routes>
+          </main>
         </div>
-
-        <button
-          onClick={addTask}
-          className="bg-blue-600 hover:bg-green-700 px-4 py-2 text-white rounded-lg w-full mb-5"
-        >
-          Add Task
-        </button>
-
-        {/* Search */}
-        <div className="flex space-x-2 mb-6">
-          <input
-            className="flex-1 p-2 rounded-lg text-black"
-            type="text"
-            placeholder="Search task..."
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-          />
-          <button
-            onClick={() => setTasks(tasks.filter(t => t.task.toLowerCase().includes(search.toLowerCase())))}
-            className="bg-yellow-500 hover:bg-yellow-600 px-4 py-2 text-black rounded-lg font-semibold"
-          >
-            Search
-          </button>
-        </div>
-
-        {/* Stats */}
-        <div className="flex justify-between text-sm mb-3 text-gray-400">
-          <span>Total: {tasks.length}</span>
-          <span>Completed: {tasks.filter(t => t.done).length}</span>
-        </div>
-
-        {/* Task List */}
-        <ul className="space-y-2">
-          {tasks.map((t, index) => (
-            <li
-              key={index}
-              className={`p-3 rounded-lg flex justify-between items-center ${
-                t.done ? "bg-green-900/40" : dark ? "bg-gray-700" : "bg-gray-100"
-              }`}
-            >
-              <div>
-                {editIndex === index ? (
-                  <input
-                    className="p-2 rounded-lg text-black"
-                    value={editText}
-                    onChange={(e) => setEditText(e.target.value)}
-                  />
-                ) : (
-                  <p
-                    onClick={() => toggleTask(index)}
-                    className={`font-semibold text-lg cursor-pointer flex items-center space-x-2 ${
-                      t.done
-                        ? "line-through text-gray-400 opacity-70"
-                        : dark
-                        ? "text-white"
-                        : "text-gray-900"
-                    }`}
-                  >
-                    {t.done && <span className="text-green-400">✅</span>}
-                    <span>{t.task}</span>
-                  </p>
-                )}
-                <p className="text-sm">Category: {t.category}</p>
-                <p className="text-sm">Priority: {t.priority}</p>
-                <p className="text-sm">Due: {t.due}</p>
-              </div>
-
-              {editIndex === index ? (
-                <button
-                  onClick={() => {
-                    const newTasks = [...tasks];
-                    newTasks[index].task = editText;
-                    setTasks(newTasks);
-                    setEditIndex(null);
-                  }}
-                  className="bg-green-500 px-3 py-1 rounded-lg text-black"
-                >
-                  Save
-                </button>
-              ) : (
-                <div className="flex space-x-2">
-                  <button
-                    onClick={() => {
-                      setEditIndex(index);
-                      setEditText(t.task);
-                    }}
-                    className="bg-blue-500 px-3 py-1 rounded-lg"
-                  >
-                    Edit
-                  </button>
-                  <button
-                    onClick={() => deleteTask(index)}
-                    className="bg-red-600 px-3 py-1 rounded-lg hover:bg-red-700 text-white"
-                  >
-                    Delete
-                  </button>
-                </div>
-              )}
-            </li>
-          ))}
-        </ul>
-
-        {/* Clear All Button */}
-        {tasks.length > 0 && (
-          <button
-            onClick={clearAll}
-            className="bg-yellow-600 mt-5 hover:bg-yellow-700 text-white w-full py-2 rounded-lg"
-          >
-            Clear All Tasks
-          </button>
-        )}
       </div>
-    </div>
+    </Router>
   );
 }
 
